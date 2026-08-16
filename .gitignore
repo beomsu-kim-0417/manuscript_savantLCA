@@ -1,0 +1,34 @@
+# ===== Patient / individual-level data: NEVER commit =====
+Data/
+Source_Data/
+Tables/
+phenotype_data/
+genotype_data/
+*.xlsx
+*.xls
+*.docx
+*.doc
+*.tsv
+*.txt
+*.RData
+*.rds
+
+# CSV blocked by default (may contain individual-level data)…
+*.csv
+# …except the aggregated, de-identified figure inputs, which the figure
+# scripts read directly and which hold model output only:
+!figure_pipeline/figure_data/
+!figure_pipeline/figure_data/*.csv
+!figure_pipeline/figure_data/*.tsv
+
+# ===== Output figures (regenerate from scripts) =====
+*.pdf
+*.png
+*.svg
+*.tiff
+
+# ===== OS / misc =====
+.DS_Store
+.Rhistory
+__pycache__/
+*.pyc
