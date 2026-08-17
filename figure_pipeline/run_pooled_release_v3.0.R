@@ -17,7 +17,7 @@ arg_value <- function(flag) {
 }
 
 master_path <- normalizePath(arg_value("--master"), mustWork = TRUE)
-legacy_runner <- normalizePath(arg_value("--legacy-runner"), mustWork = TRUE)
+reference_runner <- normalizePath(arg_value("--legacy-runner"), mustWork = TRUE)
 reference_dir <- normalizePath(arg_value("--reference-dir"), mustWork = TRUE)
 out_dir <- normalizePath(arg_value("--out"), mustWork = FALSE)
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
@@ -294,14 +294,14 @@ write_tsv(audit, paste0("model_n_audit_", version, ".tsv"))
 write_tsv(specs, paste0("model_specification_", version, ".tsv"))
 
 # Run the reference implementation for comparison.
-legacy_out <- tempfile("savant_legacy_release_")
-dir.create(legacy_out, recursive = TRUE)
+reference_out <- tempfile("savant_legacy_release_")
+dir.create(reference_out, recursive = TRUE)
 status <- system2(
   "Rscript",
   c(
-    shQuote(legacy_runner),
+    shQuote(reference_runner),
     "--master", shQuote(master_path),
-    "--out", shQuote(legacy_out),
+    "--out", shQuote(reference_out),
     "--reference-dir", shQuote(reference_dir)
   ),
   stdout = TRUE,
@@ -311,34 +311,34 @@ if (!is.null(attr(status, "status")) && attr(status, "status") != 0L) {
   stop("reference comparison runner failed: ", paste(status, collapse = "\n"))
 }
 
-compare_pair <- function(current, legacy_name, scope) {
-  legacy <- fread(file.path(legacy_out, legacy_name))
+compare_pair <- function(current, reference_name, scope) {
+  reference <- fread(file.path(reference_out, reference_name))
   keys <- intersect(c("outcome", "domain", "PGS", "burden", "comparison", "adjustment"), names(current))
-  keys <- keys[keys %in% names(legacy)]
+  keys <- keys[keys %in% names(reference)]
   if (!length(keys)) stop("no comparison keys for ", scope)
-  merged <- merge(current, legacy, by = keys, suffixes = c("_current", "_legacy"))
-  if (nrow(merged) != nrow(current) || nrow(merged) != nrow(legacy)) {
+  merged <- merge(current, reference, by = keys, suffixes = c("_current", "_reference"))
+  if (nrow(merged) != nrow(current) || nrow(merged) != nrow(reference)) {
     stop("reference comparison row mismatch for ", scope)
   }
   data.table(
     scope = scope,
     rows = nrow(merged),
-    max_abs_or_difference = max(abs(merged$OR_current - merged$OR_legacy)),
-    max_abs_p_difference = max(abs(merged$p_value_current - merged$p_value_legacy)),
+    max_abs_or_difference = max(abs(merged$OR_current - merged$OR_reference)),
+    max_abs_p_difference = max(abs(merged$p_value_current - merged$p_value_reference)),
     expected_difference = "CI only: qnorm(0.975) replaces rounded 1.96"
   )
 }
 
-prior_comparison <- rbindlist(list(
+reference_comparison <- rbindlist(list(
   compare_pair(item_primary, "release_item_pgs_ados_primary_pc_v2.9.tsv", "item_primary_pc"),
   compare_pair(lca_primary, "release_lca_pgs_ados_primary_pc_v2.9.tsv", "lca_primary_pc"),
   compare_pair(dnv_primary, "release_dnv_burden_ados_primary_v2.9.tsv", "dnv_primary_no_pc")
 ))
-if (any(prior_comparison$max_abs_or_difference > 1e-12) ||
-    any(prior_comparison$max_abs_p_difference > 1e-12)) {
+if (any(reference_comparison$max_abs_or_difference > 1e-12) ||
+    any(reference_comparison$max_abs_p_difference > 1e-12)) {
   stop("model estimates differ from the reference results")
 }
-write_tsv(prior_comparison, paste0("prior_release_comparison_", version, ".tsv"))
+write_tsv(reference_comparison, paste0("prior_release_comparison_", version, ".tsv"))
 
 session_lines <- capture.output(sessionInfo())
 writeLines(
@@ -354,4 +354,4 @@ writeLines(
   file.path(out_dir, paste0("session_info_", version, ".txt"))
 )
 
-cat("PASS pooled release v3.0: 180 model fits; decision-aligned PC axes; prior unchanged estimates stable\n")
+cat("PASS pooled release v3.0: 180 model fits; reference comparisons within tolerance\n")
