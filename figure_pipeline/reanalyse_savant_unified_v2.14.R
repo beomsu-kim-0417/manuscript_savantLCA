@@ -34,8 +34,8 @@ if (skip_sex_norm) {
   cat("### 진단 모드: SSC arm sex 정규화 OFF (F1 가설 검정용, 정상 분석 아님) ###\n")
 }
 if (korean_css_restored) {
-  cat("### 축 검토 모드: 한국 ADOS CSS 를 merged_data 에서 복원 ###\n")
-  cat("### 기준선(SRS 주분석) 산출물은 v2.11 스템에 그대로 보존됨 ###\n")
+  cat("### Korean ADOS CSS values restored from merged_data ###\n")
+  cat("### Reference SRS-primary outputs retain the v2.11 filename stem ###\n")
 }
 
 data_dir <- file.path(root, "Data")

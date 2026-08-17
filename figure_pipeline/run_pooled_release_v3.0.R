@@ -308,7 +308,7 @@ status <- system2(
   stderr = TRUE
 )
 if (!is.null(attr(status, "status")) && attr(status, "status") != 0L) {
-  stop("legacy comparison runner failed: ", paste(status, collapse = "\n"))
+  stop("reference comparison runner failed: ", paste(status, collapse = "\n"))
 }
 
 compare_pair <- function(current, legacy_name, scope) {
@@ -318,7 +318,7 @@ compare_pair <- function(current, legacy_name, scope) {
   if (!length(keys)) stop("no comparison keys for ", scope)
   merged <- merge(current, legacy, by = keys, suffixes = c("_current", "_legacy"))
   if (nrow(merged) != nrow(current) || nrow(merged) != nrow(legacy)) {
-    stop("prior comparison row mismatch for ", scope)
+    stop("reference comparison row mismatch for ", scope)
   }
   data.table(
     scope = scope,
@@ -336,7 +336,7 @@ prior_comparison <- rbindlist(list(
 ))
 if (any(prior_comparison$max_abs_or_difference > 1e-12) ||
     any(prior_comparison$max_abs_p_difference > 1e-12)) {
-  stop("decision-unchanged model estimates moved relative to prior release")
+  stop("model estimates differ from the reference results")
 }
 write_tsv(prior_comparison, paste0("prior_release_comparison_", version, ".tsv"))
 

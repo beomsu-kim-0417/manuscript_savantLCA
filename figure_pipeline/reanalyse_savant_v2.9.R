@@ -270,7 +270,7 @@ write_tsv(fit_ref, "release_lca_fit_reference")
 write_tsv(profile_ref, "release_lca_profiles_reference")
 
 summary_lines <- c(
-  "Savant LCA v2.9 author-directed race-removed release analysis",
+  "Savant LCA v2.9 reference analysis",
   paste0("cohort=", nrow(dat), "; LCA=", sum(!is.na(dat$class_label)), "; PS mapped=", sum(dat$updated_pgs_mapped == TRUE, na.rm = TRUE)),
   paste0("ADOS CSS nonmissing=", sum(!is.na(dat$ados_css)), "; SRS nonmissing=", sum(!is.na(dat$srs))),
   paste0("primary item N range=", min(item_primary$N), "-", max(item_primary$N)),
